@@ -95,7 +95,16 @@ async function run(): Promise<void> {
 
         core.info(`Downloaded diff for commit ${commitData.sha}`);
         
-        const patch =  response.data;
+        // response.data tostring convertion
+        
+        var patch : string =  response.data.toString();
+
+        // check if patch is larger then 3000 openai tokens, if so trim it and set a boolean variable to true
+        let trimmed = false;
+        if (patch.length > 3000) {
+          trimmed = true;
+          patch = patch.substring(0, 3000);
+        }
 
         core.info(`Parsed diff for commit ${commitData.sha}`);
 
@@ -125,7 +134,11 @@ async function run(): Promise<void> {
         });
 
         // get the completion, replace the prefix 'Reply: ' and trim the string
-        const completionText = completion.data.choices[0].text?.replace("Reply: ", "").trim();
+        var completionText = completion.data.choices[0].text?.replace("Reply: ", "").trim();
+
+        if (trimmed){
+          completionText += "\n\n... (truncated due to size)";
+        }
 
         core.info(`Generated completion for commit ${commitData.sha}`);
         core.info('***************************************');
@@ -142,6 +155,12 @@ async function run(): Promise<void> {
 
     // add the new logs to the pr body
     newBody += `<!-- GPT-LOG:${JSON.stringify(parsedLogs)} -->`;
+
+    core.info(`----------------------------------------`);
+    core.info(`Generated new logs for PR`);
+    core.info(`----------------------------------------`);
+    core.info(`New PR body:`);
+    core.info(newBody);
 
     // update the pr body
     const updateResult = await octokit.rest.pulls.update({
