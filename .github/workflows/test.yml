@@ -10,4 +10,5 @@ jobs:
       - uses: ./
         with:
           # use openai token from github secrets
-          openai-token:  ${{ secrets.OPENAI_TOKEN }}
+          openai-token: ${{ secrets.OPENAI_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
