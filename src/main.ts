@@ -94,6 +94,9 @@ async function run(): Promise<void> {
       }).then(async (response) => {
 
         core.info(`Downloaded diff for commit ${commitData.sha}`);
+
+        // log the entire response
+        core.info(`Response: ${JSON.stringify(response)}`);
         
         const patches = response.data.files?.map(file => file.patch);
         const patch = patches?.join("\n");

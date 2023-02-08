@@ -115,6 +115,8 @@ function run() {
                 }).then((response) => __awaiter(this, void 0, void 0, function* () {
                     var _e, _f;
                     core.info(`Downloaded diff for commit ${commitData.sha}`);
+                    // log the entire response
+                    core.info(`Response: ${JSON.stringify(response)}`);
                     const patches = (_e = response.data.files) === null || _e === void 0 ? void 0 : _e.map(file => file.patch);
                     const patch = patches === null || patches === void 0 ? void 0 : patches.join("\n");
                     core.info(`Parsed diff for commit ${commitData.sha}`);
