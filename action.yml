@@ -1,11 +1,13 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'PR Summarizer using OpenAI'
+description: 'Generate a per commit changelog in the PR title'
+author: 'Pieter Van Parys'
 inputs:
-  milliseconds: # change this
+  github-token: # change this
+    required: false
+    description: 'Github token to use'
+  openai-token: # change this
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'OpenAI token to use'
 runs:
   using: 'node16'
   main: 'dist/index.js'
