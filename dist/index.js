@@ -129,12 +129,15 @@ function run() {
                     core.info(`Prompt: ${prompt}`);
                     // use the openai api to generate a completion for the messages
                     const completion = yield api.createCompletion({
-                        model: "davinci",
+                        model: "text-davinci-003",
                         prompt: prompt,
                         best_of: 1,
                         max_tokens: 100,
                         frequency_penalty: 0,
-                        presence_penalty: 0
+                        presence_penalty: 0,
+                        temperature: 0.5,
+                        top_p: 1,
+                        stream: false,
                     });
                     // get the completion, replace the prefix 'Reply: ' and trim the string
                     const completionText = (_e = completion.data.choices[0].text) === null || _e === void 0 ? void 0 : _e.replace("Reply: ", "").trim();

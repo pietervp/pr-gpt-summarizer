@@ -113,12 +113,15 @@ async function run(): Promise<void> {
 
         // use the openai api to generate a completion for the messages
         const completion = await api.createCompletion({
-          model: "davinci",
+          model: "text-davinci-003",
           prompt: prompt,
           best_of: 1,
           max_tokens: 100,
           frequency_penalty: 0,
-          presence_penalty: 0
+          presence_penalty: 0,
+          temperature: 0.5,
+          top_p: 1,
+          stream: false,
         });
 
         // get the completion, replace the prefix 'Reply: ' and trim the string
