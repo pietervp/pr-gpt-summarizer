@@ -113,12 +113,9 @@ function run() {
                         format: "diff"
                     }
                 }).then((response) => __awaiter(this, void 0, void 0, function* () {
-                    var _e, _f;
+                    var _e;
                     core.info(`Downloaded diff for commit ${commitData.sha}`);
-                    // log the entire response
-                    core.info(`Response: ${JSON.stringify(response)}`);
-                    const patches = (_e = response.data.files) === null || _e === void 0 ? void 0 : _e.map(file => file.patch);
-                    const patch = patches === null || patches === void 0 ? void 0 : patches.join("\n");
+                    const patch = response.data;
                     core.info(`Parsed diff for commit ${commitData.sha}`);
                     // concat all the parsedLogs messages together
                     const messages = parsedLogs.map((log) => log.changelog).join("\n");
@@ -140,9 +137,11 @@ function run() {
                         presence_penalty: 0
                     });
                     // get the completion, replace the prefix 'Reply: ' and trim the string
-                    const completionText = (_f = completion.data.choices[0].text) === null || _f === void 0 ? void 0 : _f.replace("Reply: ", "").trim();
+                    const completionText = (_e = completion.data.choices[0].text) === null || _e === void 0 ? void 0 : _e.replace("Reply: ", "").trim();
                     core.info(`Generated completion for commit ${commitData.sha}`);
+                    core.info('***************************************');
                     core.info(`Completion: ${completionText}`);
+                    core.info('***************************************');
                     // add to parsedLogs
                     parsedLogs.push({
                         commitHash: commitData.sha,

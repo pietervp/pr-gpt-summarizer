@@ -94,12 +94,8 @@ async function run(): Promise<void> {
       }).then(async (response) => {
 
         core.info(`Downloaded diff for commit ${commitData.sha}`);
-
-        // log the entire response
-        core.info(`Response: ${JSON.stringify(response)}`);
         
-        const patches = response.data.files?.map(file => file.patch);
-        const patch = patches?.join("\n");
+        const patch =  response.data;
 
         core.info(`Parsed diff for commit ${commitData.sha}`);
 
@@ -129,7 +125,9 @@ async function run(): Promise<void> {
         const completionText = completion.data.choices[0].text?.replace("Reply: ", "").trim();
 
         core.info(`Generated completion for commit ${commitData.sha}`);
+        core.info('***************************************');
         core.info(`Completion: ${completionText}`);
+        core.info('***************************************');
 
         // add to parsedLogs
         parsedLogs.push({
