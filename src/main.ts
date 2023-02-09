@@ -197,7 +197,7 @@ async function run(): Promise<void> {
     core.info(newBody);
 
     // update the pr body
-    const updateResult = await octokit.rest.pulls.updateReviewComment({
+    const updateResult = await octokit.rest.issues.updateComment({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
       comment_id: comment.id,
