@@ -41,7 +41,41 @@ async function run(): Promise<void> {
       throw new Error('Could not get pull request from GitHub API, exiting');
     }
 
-    var newBody = pr.body ?? "";
+    // find comment made by this action
+    const { data: comments } = await octokit.rest.issues.listComments({
+      owner: github.context.repo.owner,
+      repo: github.context.repo.repo,
+      issue_number: number,
+    });
+
+    // check if comments is null
+    if (!comments) {
+      throw new Error('Could not get comments from GitHub API, exiting');
+    }
+
+    // find our comment
+    var comment = comments.find((comment) => {
+      return comment.body?.includes('<!-- GPT-LOG:') ?? false;
+    });
+
+    // if comment is null, create a new one
+    if (!comment) {
+      core.info('Could not find comment, creating a new one');
+      const { data: newComment } = await octokit.rest.issues.createComment({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        issue_number: number,
+        body: 'Generating changelogs...',
+      });
+
+      // check if newComment is null
+      if (!newComment) {
+        throw new Error('Could not create comment, exiting');
+      }
+      comment = newComment;
+    }
+
+    var newBody = comment.body ?? "";
 
     // we hide data in the pr body, so we need to parse it
     // the data is in format <!-- GPT-LOG:<json object> -->
@@ -65,7 +99,7 @@ async function run(): Promise<void> {
 
     core.info(`Found ${commits.length} commits in PR`);
     core.info(`Found ${parsedLogs.length} previously parsed commits`);
-    
+
     // filter the commits to only include the ones that are NOT in the parsedLogs
     const filteredCommits = commits.filter((commit) => {
       return !parsedLogs.some((log) => {
@@ -82,7 +116,7 @@ async function run(): Promise<void> {
       core.info(`Generating changelog for commit ${commitData.sha}`);
       core.info(`Commit message: ${commitData.commit.message}`);
       core.info(`Commit url: ${commitData.html_url}`);
-      
+
       // download the diff url
       await octokit.rest.repos.getCommit({
         owner: github.context.repo.owner,
@@ -94,13 +128,13 @@ async function run(): Promise<void> {
       }).then(async (response) => {
 
         core.info(`Downloaded diff for commit ${commitData.sha}`);
-        
+
         // response.data tostring convertion
-        
-        var patch : string =  response.data.toString();
+
+        var patch: string = response.data.toString();
 
         // check if patch is larger then 3000 openai tokens, if so trim it and set a boolean variable to true
-        
+
         if (patch.length > 3000) {
           parsedLogs.push({
             commitHash: commitData.sha,
@@ -163,11 +197,11 @@ async function run(): Promise<void> {
     core.info(newBody);
 
     // update the pr body
-    const updateResult = await octokit.rest.issues.update({
+    const updateResult = await octokit.rest.pulls.updateReviewComment({
       owner: github.context.repo.owner,
       repo: github.context.repo.repo,
-      issue_number: number,
-      body: newBody,      
+      comment_id: comment.id,
+      body: newBody,
     });
 
     core.info(`Updated PR body with new logs`);
