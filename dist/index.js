@@ -70,7 +70,37 @@ function run() {
             if (!pr) {
                 throw new Error('Could not get pull request from GitHub API, exiting');
             }
-            var newBody = (_c = pr.body) !== null && _c !== void 0 ? _c : "";
+            // find comment made by this action
+            const { data: comments } = yield octokit.rest.issues.listComments({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                issue_number: number,
+            });
+            // check if comments is null
+            if (!comments) {
+                throw new Error('Could not get comments from GitHub API, exiting');
+            }
+            // find our comment
+            var comment = comments.find((comment) => {
+                var _a, _b;
+                return (_b = (_a = comment.body) === null || _a === void 0 ? void 0 : _a.includes('<!-- GPT-LOG:')) !== null && _b !== void 0 ? _b : false;
+            });
+            // if comment is null, create a new one
+            if (!comment) {
+                core.info('Could not find comment, creating a new one');
+                const { data: newComment } = yield octokit.rest.issues.createComment({
+                    owner: github.context.repo.owner,
+                    repo: github.context.repo.repo,
+                    issue_number: number,
+                    body: 'Generating changelogs...',
+                });
+                // check if newComment is null
+                if (!newComment) {
+                    throw new Error('Could not create comment, exiting');
+                }
+                comment = newComment;
+            }
+            var newBody = (_c = comment.body) !== null && _c !== void 0 ? _c : "";
             // we hide data in the pr body, so we need to parse it
             // the data is in format <!-- GPT-LOG:<json object> -->
             const logRegex = /<!-- GPT-LOG:(.*) -->/g;
@@ -170,10 +200,10 @@ function run() {
             core.info(`New PR body:`);
             core.info(newBody);
             // update the pr body
-            const updateResult = yield octokit.rest.issues.update({
+            const updateResult = yield octokit.rest.pulls.updateReviewComment({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
-                issue_number: number,
+                comment_id: comment.id,
                 body: newBody,
             });
             core.info(`Updated PR body with new logs`);
